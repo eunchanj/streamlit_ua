@@ -1,6 +1,8 @@
 pip==21.3.1
 pandas
 numpy
+pickleshare
+pickle5
 streamlit==0.88.0
 Pillow
 matplotlib
