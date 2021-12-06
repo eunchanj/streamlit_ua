@@ -1,3 +1,4 @@
+altair
 pandas==1.2.3
 numpy==1.19.2
 pickleshare==0.7.5
