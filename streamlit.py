@@ -7,7 +7,7 @@ import streamlit as st
 from PIL import Image
 import numpy as np
 import pandas as pd
-from xgboost import XGBClassifier
+# from xgboost import XGBClassifier
 from matplotlib import pyplot as plt
 from numpy import sqrt
 from numpy import argmax
