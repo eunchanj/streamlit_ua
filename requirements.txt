@@ -6,9 +6,5 @@ Pillow
 matplotlib
 xgboost
 joblib
-sklearn.preprocessing
-sklearn.metrics
-sklearn.calibration
-sklearn.utils
 shap
-sklearn
+scikit-learn
