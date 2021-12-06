@@ -1,6 +1,6 @@
 pandas
 numpy
-pickle-mixin
+pickle5
 streamlit
 Pillow
 matplotlib
