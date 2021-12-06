@@ -2,7 +2,7 @@ pandas
 numpy
 pickle-mixin
 streamlit
-PIL
+Pillow
 matplotlib
 xgboost
 joblib
