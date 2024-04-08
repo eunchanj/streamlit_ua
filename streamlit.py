@@ -139,7 +139,7 @@ def main():
     if st.button("Predict"):
         sample_case_map = data_mapping(sample_case)
         result = model_prediction(sample_case_map)
-        prob = result
+        prob = np.float64(result)
         shap_bar = shap(sample_case_map)
 
         st.success('probability : {}'.format(result))
