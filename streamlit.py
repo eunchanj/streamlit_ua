@@ -83,7 +83,7 @@ def model_prediction(
     # predict probability by model
     prob = model.predict_proba(sample_case_features)[:,1]
             
-    return prob
+    return np.float64(prob)
 
 def data_mapping(df):
     """this function preprocess the user input
@@ -139,7 +139,7 @@ def main():
     if st.button("Predict"):
         sample_case_map = data_mapping(sample_case)
         result = model_prediction(sample_case_map)
-        prob = np.float64(result)
+        prob = result
         shap_bar = shap(sample_case_map)
 
         st.success('probability : {}'.format(result))
