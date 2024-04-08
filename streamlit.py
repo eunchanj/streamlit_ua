@@ -144,18 +144,18 @@ def main():
 
         st.success('probability : {}'.format(result))
     
-        if ((sample_case_map['he_upro'].item()<=1) and (float(prob) > 0.44)) :
+        if ((sample_case_map['he_upro'].item()<=1) and (prob > 0.44) :
             #st.success("prediction : eGFR<60, abnormal")
             st.success("threshold : 0.44")
             st.image(im_abnormal)
             st.image(im_non, caption='reference')
             st.bar_chart(data=shap_bar)
-        elif ((sample_case_map['he_upro'].item()<=1) and (float(prob) <= 0.44)) :
+        elif ((sample_case_map['he_upro'].item()<=1) and (prob <= 0.44) :
             #st.success("prediction : eGFR>=60, normal")
             st.success("threshold : 0.44")
             st.image(im_normal)
             st.bar_chart(data=shap_bar)
-        elif((sample_case_map['he_upro'].item()>1) and (float(prob) > 0.77)) :
+        elif((sample_case_map['he_upro'].item()>1) and (prob > 0.77) :
             #st.success("prediction : eGFR<60, abnormal")
             st.success("threshold : 0.77")
             st.image(im_abnormal)
