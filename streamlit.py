@@ -28,21 +28,15 @@ def data_mapping(raw):
 def get_shap_values(sample_case):
     feats = sample_case[['male','he_usg','he_uph','he_ubld','he_uglu','he_upro','age']].copy()
     std_cols = ['age','he_uph','he_usg']
-    # .values 로 넘겨서 “feature names” 경고 제거
     feats.loc[:, std_cols] = scaler60.transform(feats[std_cols].values)
 
     shap_all = explainer60.shap_values(feats)
-
-    # shap_all이 리스트인지 배열인지 판별
     if isinstance(shap_all, list):
-        # [class0, class1] 형태 => 양성 클래스(1)의 SHAP 배열
-        shap_arr = shap_all[1]
+        shap_arr = shap_all[1]  # 양성 클래스(1)의 SHAP 배열
     else:
-        # (n_samples, n_features) 배열 형태
         shap_arr = shap_all
 
-    # 첫 번째(유일한) 샘플의 SHAP 값
-    shap_vals = shap_arr[0]
+    shap_vals = shap_arr[0]  # 첫 번째(유일한) 샘플의 SHAP 값
 
     return pd.DataFrame(
         {'shap_value(probability)': shap_vals},
@@ -91,11 +85,18 @@ def main():
         prob    = model_prediction(sample_case)[0]
         shap_df = get_shap_values(sample_case)
 
-        st.success(f'Predicted probability of risk: {prob:.2f}')
+        # 0.5 임계치에 따라 배경색을 녹/적으로
+        color = "#2ecc71" if prob < 0.5 else "#e74c3c"
+        st.markdown(
+            f"<div style='background-color:{color}; padding:12px; border-radius:5px; color:white; font-weight:bold'>"
+            f"Predicted probability of risk: {prob:.2f}"
+            "</div>",
+            unsafe_allow_html=True
+        )
 
         # 결과에 따라 이미지 출력
-        img = Image.open('normal.jpg' if prob < 0.5 else 'abnormal.jpg')
-        st.image(img, use_column_width=True)
+        img_path = 'normal.jpg' if prob < 0.5 else 'abnormal.jpg'
+        st.image(Image.open(img_path), use_column_width=True)
 
         # SHAP 차트
         st.bar_chart(shap_df)
