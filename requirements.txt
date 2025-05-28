@@ -1,9 +1,9 @@
 # pandas, numpy → Python 3.9 바이너리 휠 보장
-pandas==1.3.5
-numpy==1.21.6
+pandas==1.4.4
+numpy==1.23.5
 
 # SHAP explainer 직렬화에 쓰인 numba
-numba==0.53.1
+#numba==0.53.1
 
 # Streamlit 앱
 streamlit==1.45.1
