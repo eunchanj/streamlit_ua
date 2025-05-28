@@ -1,23 +1,10 @@
-# pandas, numpy → Python 3.9 바이너리 휠 보장
 pandas==1.4.4
 numpy==1.23.5
-
-# SHAP explainer 직렬화에 쓰인 numba
-#numba==0.53.1
-
-# Streamlit 앱
 streamlit==1.45.1
 pickleshare==0.7.5
 Pillow==11.2.1
 matplotlib==3.9.4
-
-# 모델/스케일러 로딩
 xgboost==1.2.0
 joblib==1.0.0
-
-# SHAP (explainer60.pkl 생성 시 버전)
 shap==0.37.0
-
-# scikit-learn은 pickled scaler(v0.23.2) 호환 위해
-# 하지만 빌드 오류를 피하려면 wheels가 있는 1.x 계열로 올립니다.
 scikit-learn==1.1.3
