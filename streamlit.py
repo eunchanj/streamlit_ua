@@ -14,12 +14,8 @@ from sklearn.utils import resample
 model60  = joblib.load('ua60_model')
 scaler60 = joblib.load('scaler60.pkl')
 
-# 2) Explainer를 런타임에 생성 (pickle 대신)
-@st.cache_resource
-def load_explainer(model):
-    return shap.TreeExplainer(model)
-
-expl60 = load_explainer(model60)
+# 2) Explainer 를 런타임에 직접 생성
+expl60 = shap.TreeExplainer(model60)
 
 # 이미지 로딩
 im_non      = Image.open('non.jpg')
