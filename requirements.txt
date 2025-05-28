@@ -1,5 +1,5 @@
 pandas==1.4.4
-numpy==1.22.0
+numpy==1.21.6           # numpy 버전 다운그레이드 → numba 0.55.1과 호환
 numba==0.55.1
 pickleshare==0.7.5
 streamlit==1.25.0
