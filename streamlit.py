@@ -1,104 +1,92 @@
+import streamlit as st
 import pandas as pd
 import numpy as np
-import streamlit as st
 import joblib
 import shap
 from PIL import Image
-from matplotlib import pyplot as plt
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import roc_curve, classification_report, roc_auc_score, confusion_matrix
-from sklearn.calibration import CalibratedClassifierCV
-from sklearn.utils import resample
 
 # 1) 모델과 스케일러 로드
 model60  = joblib.load('ua60_model')
 scaler60 = joblib.load('scaler60.pkl')
 
-# 2) Explainer 를 런타임에 직접 생성
-expl60 = shap.TreeExplainer(model60)
+# 2) SHAP Explainer 런타임에 생성
+explainer60 = shap.TreeExplainer(model60)
 
-# 이미지 로딩
-im_non      = Image.open('non.jpg')
-im_pro      = Image.open('pro.jpg')
-im_normal   = Image.open('normal.jpg')
-im_abnormal = Image.open('abnormal.jpg')
+# 원본 입력값을 모델 입력 포맷으로 매핑하는 함수
+def data_mapping(raw):
+    return pd.DataFrame([{
+        'male':        1 if raw['sex']=='Male' else 0,
+        'he_usg':      raw['urine specific gravity'],
+        'he_uph':      raw['urine pH'],
+        'he_ubld':     raw['urine blood'],
+        'he_uglu':     raw['urine glucose'],
+        'he_upro':     raw['urine protein'],
+        'age':         raw['age']
+    }])
 
-# SHAP 값 계산 함수
-def get_shap_values(sample_case, scaler=scaler60, explainer=expl60):
-    std_cols = ['age', 'he_uph', 'he_usg']
-    feats = sample_case[['male','he_usg','he_uph','he_ubld','he_uglu','he_upro','age']]
-    feats[std_cols] = scaler.transform(feats[std_cols])
-    shap_vals = explainer.shap_values(feats.iloc[0])
+# SHAP 값 계산
+def get_shap_values(sample_case):
+    feats = sample_case[['male','he_usg','he_uph','he_ubld','he_uglu','he_upro','age']].copy()
+    std_cols = ['age','he_uph','he_usg']
+    # .values 로 넘겨서 feature name 경고 제거
+    feats.loc[:, std_cols] = scaler60.transform(feats[std_cols].values)
+    # explainer.shap_values에 2D DataFrame(1×7) 그대로 넘김
+    shap_all = explainer60.shap_values(feats)
+    # 양성 클래스(1)의 첫 샘플 shap 값만 취함
+    shap_pos = shap_all[1][0]
     return pd.DataFrame(
-        {'shap_value(probability)': shap_vals},
-        index=['sex','urine specific gravity','urine pH','urine blood','urine glucose','urien protein','age']
+        {'shap_value(probability)': shap_pos},
+        index=['sex',
+               'urine specific gravity',
+               'urine pH',
+               'urine blood',
+               'urine glucose',
+               'urine protein',
+               'age']
     )
 
-# 예측 함수
-def model_prediction(sample_case, scaler=scaler60, model=model60):
-    std_cols = ['age', 'he_uph', 'he_usg']
-    feats = sample_case[['male','he_usg','he_uph','he_ubld','he_uglu','he_upro','age']]
-    feats[std_cols] = scaler.transform(feats[std_cols])
-    return np.float64(model.predict_proba(feats)[:,1])
-
-# 입력 매핑
-def data_mapping(df):
-    df.male = df.male.map({'female':0, 'male':1})
-    for col in ['he_ubld','he_upro','he_uglu']:
-        df[col] = df[col].map({"-":0, "+/-":1, "1+":2, "2+":3, "3+":4, "4+":5})
-    return df
+# 예측 확률 계산
+def model_prediction(sample_case):
+    feats = sample_case[['male','he_usg','he_uph','he_ubld','he_uglu','he_upro','age']].copy()
+    std_cols = ['age','he_uph','he_usg']
+    feats.loc[:, std_cols] = scaler60.transform(feats[std_cols].values)
+    return model60.predict_proba(feats)[:,1]
 
 def main():
-    st.title("Check Your Function of Kidney")
-    st.markdown(
-        """
-        <div style="background-color:grey;padding:13px">
-        <h1 style="color:black;text-align:center;">eGFR60 Classifier ML App</h1>
-        </div>
-        """, unsafe_allow_html=True
-    )
+    st.title("Check Your Kidney Function")
 
-    age     = st.sidebar.slider("Age", 0, 100, 1)
-    male    = st.sidebar.selectbox("Sex", ("female","male"))
-    he_usg  = st.sidebar.selectbox("Urine Specific Gravity", (1.000,1.005,1.010,1.015,1.020,1.025,1.030))
-    he_uph  = st.sidebar.selectbox("Urine pH", (5.0,5.5,6.0,6.5,7.0,7.5,8.0,8.5,9.0))
-    he_ubld = st.sidebar.selectbox("Urine Blood", ("-","+/-","1+","2+","3+","4+"))
-    he_uglu = st.sidebar.selectbox("Urine Glucose", ("-","+/-","1+","2+","3+","4+"))
-    he_upro = st.sidebar.selectbox("Urine Protein", ("-","+/-","1+","2+","3+","4+"))
+    # 사이드바에서 사용자 입력 받기
+    st.sidebar.header("Patient Information")
+    age = st.sidebar.slider("Age", 1, 100, 30)
+    sex = st.sidebar.selectbox("Sex", ["Male", "Female"])
+    usg = st.sidebar.slider("Urine Specific Gravity", 1.005, 1.030, 1.015, step=0.001)
+    uph = st.sidebar.slider("Urine pH", 4.5, 8.0, 7.0)
+    ubld = st.sidebar.slider("Urine Blood", 0, 5, 0)
+    ugu = st.sidebar.slider("Urine Glucose", 0, 4, 0)
+    upro = st.sidebar.slider("Urine Protein", 0, 2, 0)
 
-    sample_case = pd.DataFrame({
-        "male":    [male],
-        "he_usg":  [he_usg],
-        "he_uph":  [he_uph],
-        "he_ubld": [he_ubld],
-        "he_uglu": [he_uglu],
-        "he_upro": [he_upro],
-        "age":     [age]
-    })
+    raw_input = {
+        'age': age,
+        'sex': sex,
+        'urine specific gravity': usg,
+        'urine pH': uph,
+        'urine blood': ubld,
+        'urine glucose': ugu,
+        'urine protein': upro
+    }
+    sample_case = data_mapping(raw_input)
 
     if st.button("Predict"):
-        mapped = data_mapping(sample_case)
-        prob   = model_prediction(mapped)
-        shap_df= get_shap_values(mapped)
+        prob    = model_prediction(sample_case)[0]
+        shap_df = get_shap_values(sample_case)
 
-        st.success(f'Probability: {prob:.2f}')
+        st.success(f'Predicted probability of risk: {prob:.2f}')
 
-        # 결과 표시
-        if mapped['he_upro'].item() <= 1:
-            thresh = 0.44
-            img    = im_non if prob <= thresh else im_abnormal
-            st.success(f"Threshold: {thresh}")
-            st.image(img)
-            if prob > thresh:
-                st.image(im_non, caption='Reference')
-        else:
-            thresh = 0.77
-            img    = im_normal if prob <= thresh else im_abnormal
-            st.success(f"Threshold: {thresh}")
-            st.image(img)
-            if prob > thresh:
-                st.image(im_pro, caption='Reference')
+        # 결과에 따라 이미지 출력
+        img = Image.open('non.jpg' if prob < 0.5 else 'low.jpg')
+        st.image(img, use_column_width=True)
 
+        # SHAP 차트
         st.bar_chart(shap_df)
 
 if __name__ == '__main__':
