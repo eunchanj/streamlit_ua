@@ -16,8 +16,8 @@ from sklearn.utils import resample
 # 로딩된 모델 및 scaler
 model60 = joblib.load('ua60_model')
 scaler60 = joblib.load('scaler60.pkl')
-#expl60 = joblib.load('explainer60.pkl')
-expl60 = shap.TreeExplainer(model60)
+expl60 = joblib.load('explainer60.pkl')
+#expl60 = shap.TreeExplainer(model60)
 
 # 이미지 로딩
 im_non = Image.open('non.jpg')
