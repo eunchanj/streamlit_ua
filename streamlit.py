@@ -94,7 +94,7 @@ def main():
         st.success(f'Predicted probability of risk: {prob:.2f}')
 
         # 결과에 따라 이미지 출력
-        img = Image.open('non.jpg' if prob < 0.5 else 'low.jpg')
+        img = Image.open('normal.jpg' if prob < 0.5 else 'abnormal.jpg')
         st.image(img, use_column_width=True)
 
         # SHAP 차트
